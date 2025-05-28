@@ -3,7 +3,7 @@ cache/
 out/
 !out/UniObrv.sol/IUniswapV3Pool.json
 !out/UniObrv.sol/UniObrv.json
-!out/UniObrv.t.sol/LensOnTest.json
+!out/UniObrv.t.sol/UniObrv.t.json
 
 # Ignores development broadcast logs
 !/broadcast
