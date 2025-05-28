@@ -1,0 +1,39 @@
+[package]
+name = "uni-obrv"
+version = "0.1.0"
+edition = "2024"
+authors = ["Un4giv3n <twitter.com/_nun4g7n>"]
+description = "A library for querying Uniswap V3 using On-chain helper contract."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/Un4G173N/uni_obrv"
+categories = ["cryptography::cryptocurrencies", "finance", "no-std"]
+keywords = ["alloy", "ethereum", "solidity", "uniswap"]
+
+
+
+include = [
+    "src/**/*.rs",
+    "contracts/*",
+    "out/UniObrv.sol/*",
+    "out/UniObrv.t.sol/*",
+]
+
+[dependencies]
+alloy = { version = "1.0.1", default-features = false, features = ["contract", "json-rpc", "rpc-types"] }
+eyre = "0.6.12"
+
+[dev-dependencies]
+alloy = { version = "1.0.1", default-features = false, features = ["transport-http", "reqwest"] }
+tokio = { version = "1", features = ["full"] }
+dotenv = "0.15"
+futures = "0.3"
+once_cell = "1.20"
+
+[features]
+default = []
+std = ["alloy/std"]
+
+
+
+
