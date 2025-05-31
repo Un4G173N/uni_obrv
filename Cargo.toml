@@ -17,6 +17,7 @@ include = [
     "contracts/*",
     "out/UniObrv.sol/*",
     "out/UniObrv.t.sol/*",
+    "UniObrv.sol/*"
 ]
 
 [dependencies]
