@@ -6,6 +6,7 @@ import "contracts/UniObrv.sol";
 
 contract UniObrvTest is Test {
     UniObrv uniObrv;
+    UniObrv uniObrv_new;
     address constant POOL_ADDRESS = 0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640; // DAI/USDC 0.05% pool
     address constant UNI_OBRV = 0xb16Fe18dF6A79f8CE3049FfECEBD9FEaAf39f808;
 
@@ -27,19 +28,34 @@ contract UniObrvTest is Test {
         (bool success, ) = POOL_ADDRESS.call(abi.encodeWithSignature("tickSpacing()"));
         require(success, "Pool does not exist or is not a valid Uniswap V3 pool");       
         uniObrv = UniObrv(UNI_OBRV);
+        uniObrv_new = new UniObrv();
     }
 
     function test_GetTickData() public view{
 
-        address POOL= 0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640; // Example Uniswap V3 pool (USDC/WETH)
 
         int24 tick_lower = 188258; 
         int24 tick_upper = 188558;
         uint256 max_ticks = 1000000;
 
-        UniObrv.PopulatedTick[] memory ticks = uniObrv.getTickData(POOL, tick_lower, tick_upper, max_ticks);
+        (UniObrv.PopulatedTick[] memory ticks, int24 tickSpacing) = uniObrv.getTickData(POOL_ADDRESS, tick_lower, tick_upper, max_ticks);
         UniObrv.PopulatedTick memory tick = ticks[0];
         console.log(tick.feeGrowthOutside0X128);
+        console.log("Space: ", tickSpacing);
+        assert(tick.liquidityGross != 0);
+    }
+
+    function test_GetTickData_new_deployed() public view{
+
+
+        int24 tick_lower = 188258; 
+        int24 tick_upper = 188558;
+        uint256 max_ticks = 1000000;
+
+        (UniObrv.PopulatedTick[] memory ticks, int24 tickSpacing) = uniObrv_new.getTickData(POOL_ADDRESS, tick_lower, tick_upper, max_ticks);
+        UniObrv.PopulatedTick memory tick = ticks[0];
+        console.log(tick.feeGrowthOutside0X128);
+        console.log("Space: ", tickSpacing);
         assert(tick.liquidityGross != 0);
     }
 

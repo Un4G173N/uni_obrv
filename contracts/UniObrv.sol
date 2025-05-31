@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.20;
 
+
+
 interface IUniswapV3Pool {
     function tickBitmap(int16 wordPos) external view returns (uint256);
     function ticks(int24 tick) external view returns (
@@ -30,16 +32,16 @@ contract UniObrv {
         int24 tickLower,
         int24 tickUpper,
         uint256 maxTicks
-    ) external view returns ( PopulatedTick[] memory populatedTicks) {
+    ) external view returns ( PopulatedTick[] memory populatedTicks, int24 tickSpacing) {
         require(pool != address(0), "Invalid pool address");
         require(tickLower <= tickUpper, "Invalid tick range");
         require(tickLower >= -887272 && tickUpper <= 887272, "Ticks out of range");
         
 
 
-    uint256[] memory bitmaps;
+        uint256[] memory bitmaps;
 
-        int24 tickSpacing = IUniswapV3Pool(pool).tickSpacing();
+        tickSpacing = IUniswapV3Pool(pool).tickSpacing();
         tickLower = (tickLower / tickSpacing) * tickSpacing;
         tickUpper = (tickUpper / tickSpacing) * tickSpacing;
 

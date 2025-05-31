@@ -1,8 +1,7 @@
 #![doc = "Module for interacting with the UniswapObrv Solidity contract to query Uniswap V3 pool tick data."]
 
 use alloy::{
-    primitives::{address, aliases::I24, Address, U256 },
-    sol,
+    network::Network, primitives::{address, aliases::I24, Address, U256 }, providers::Provider, sol
 };
 // #[cfg(feature = "std")]
 use eyre::Result;
@@ -23,11 +22,11 @@ sol!(
     #[allow(missing_docs)]
     #[sol(rpc)]
     UniObrvContract,
-    "out/UniObrv.sol/UniObrv.json"
+    "UniObrv.sol/UniObrv.json"
 );
 
 /// Constant address of the deployed UniswapObrv contract.
-pub const UNI_OBRV: Address = address!("b16Fe18dF6A79f8CE3049FfECEBD9FEaAf39f808");
+pub const UNI_OBRV: Address = address!("4d2c0A1d2d3725618c6799b3DE9FDdEf1d4118B5");
 
 /// Queries tick data from a Uniswap V3 pool via the LensOn contract.
 ///
@@ -42,14 +41,18 @@ pub const UNI_OBRV: Address = address!("b16Fe18dF6A79f8CE3049FfECEBD9FEaAf39f808
 /// # Returns
 /// A `Result` containing a vector of `PopulatedTick` structs or an error if the query fails.
 // #[cfg(feature = "std")]
-pub async fn get_tick_data<P: alloy::providers::Provider>(
+pub async fn get_tick_data<P, N>(
     pool: Address,
     tick_lower: I24,
     tick_upper: I24,
     max_ticks: U256,
     provider: P,
     uni_obrv_address: Address,
-) -> Result<Vec<PopulatedTick>> {
+) -> Result<(Vec<PopulatedTick>, I24)> 
+where 
+N: Network,
+P: Provider<N>
+{
     // Input validation
     if pool == Address::ZERO {
         eyre::bail!("Invalid pool address");
@@ -77,16 +80,19 @@ pub async fn get_tick_data<P: alloy::providers::Provider>(
         .await?;
 
     // Map results to PopulatedTick
-    Ok(result
-        .into_iter()
-        .map(|tick| PopulatedTick {
-            tick: tick.tick,
-            liquidity_net: tick.liquidityNet,
-            liquidity_gross: tick.liquidityGross,
-            fee_growth_outside_0x128: tick.feeGrowthOutside0X128,
-            fee_growth_outside_1x128: tick.feeGrowthOutside1X128,
-        })
-        .collect())
+    Ok((
+        result.populatedTicks
+            .into_iter()
+            .map(|tick| PopulatedTick {
+                tick: tick.tick,
+                liquidity_net: tick.liquidityNet,
+                liquidity_gross: tick.liquidityGross,
+                fee_growth_outside_0x128: tick.feeGrowthOutside0X128,
+                fee_growth_outside_1x128: tick.feeGrowthOutside1X128,
+            })
+            .collect(),
+        result.tickSpacing,
+    ))
 }
 
 
@@ -112,12 +118,13 @@ mod tests {
 
 
         let result = get_tick_data(POOL, tick_lower, tick_upper, max_ticks, provider, Address::ZERO).await;
-        match result {
-            Ok(ticks) => {
+        match result{
+            Ok((ticks, _tick_spacing)) => {
                 assert!(!ticks.is_empty(), "Expected non-empty tick data");
-                // for tick in ticks { 
-                //     println!("tick: {}", tick.liquidity_gross);
-                // }
+                for tick in ticks { 
+                    println!("tick: {}", tick.liquidity_gross);
+                }
+                println!("spacing: {}", _tick_spacing);
             }
             Err(e) => panic!("Valid input test failed: {:?}", e),
         }
