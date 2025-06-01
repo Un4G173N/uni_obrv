@@ -1,8 +1,8 @@
 # Uniswap Observer
 This project provides a fast and efficient way to fetch tick data from Uniswap V3 pools using a single RPC call. It consists of two main components:
 
-UniObrv Solidity Contract: A deployed Ethereum smart contract (0xb16Fe18dF6A79f8CE3049FfECEBD9FEaAf39f808) that queries tick data from Uniswap V3 pools.
-Rust Program: A lightweight Rust library (uni_obrv) that interfaces with the UniObrv contract to retrieve tick data with minimal overhead.
+- **UniObrv Solidity Contract**: A deployed Ethereum smart contract (0x4d2c0A1d2d3725618c6799b3DE9FDdEf1d4118B5) that queries tick data from Uniswap V3 pools.
+- **Rust Program**: A lightweight Rust library (uni_obrv) that interfaces with the UniObrv contract to retrieve tick data with minimal overhead.
 
 ## Features
 
@@ -14,10 +14,10 @@ Extensible: The contract and library can be extended to fetch additional Uniswap
 Getting Started
 
 Installation
-
-Clone the repository:git clone https://github.com/<your-repo>/uniswap-v3-tick-fetcher.git
-cd uniswap-v3-tick-fetcher
-
+```
+git clone the_repository
+cd uni_obrv
+```
 
 Install Rust dependencies:cargo build
 
@@ -26,11 +26,12 @@ Set up your .env file with your Ethereum RPC URL:echo "ETH_RPC_URL=<your-rpc-url
 
 
 
-Usage
+## Usage
 
 Run Tests: Execute the Rust tests to verify tick data fetching:
+```
 cargo test
-
+```
 
 Example Code: Fetch tick data for a Uniswap V3 pool (e.g., USDC/WETH):
 
@@ -47,7 +48,7 @@ async fn main() -> eyre::Result<()> {
     let tick_upper = I24::from_str("276278")?;
     let max_ticks = U256::from(1000000);
 
-    let ticks = get_tick_data(pool, tick_lower, tick_upper, max_ticks, provider, UNI_OBRV).await?;
+    let (ticks, tickSpace) = get_tick_data(pool, tick_lower, tick_upper, max_ticks, provider, UNI_OBRV).await?;
     for tick in ticks {
         println!("Tick: {}, Liquidity Gross: {}", tick.tick, tick.liquidity_gross);
     }
@@ -66,9 +67,9 @@ forge test
 ## Extending the Project
 The UniObrv contract and Rust library can be extended to support additional Uniswap V3 data, such as:
 
-Positions: Query user positions and their associated liquidity.
-Fees: Fetch accumulated fees for specific ticks or positions.
-Pool State: Retrieve global pool state like current price or liquidity.
+- **Positions**: Query user positions and their associated liquidity.
+- **Fees**: Fetch accumulated fees for specific ticks or positions.
+- **Pool State**: Retrieve global pool state like current price or liquidity.
 
 
 ## Contributing
