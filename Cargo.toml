@@ -1,6 +1,6 @@
 [package]
 name = "uni-obrv"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Un4giv3n <twitter.com/_nun4g7n>"]
 description = "A library for querying Uniswap V3 using On-chain helper contract."
