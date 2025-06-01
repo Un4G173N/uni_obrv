@@ -3,9 +3,10 @@
 use alloy::{
     network::Network, primitives::{address, aliases::I24, Address, U256 }, providers::Provider, sol
 };
-// #[cfg(feature = "std")]
-use eyre::Result;
+
 use alloc::vec::Vec;
+use alloc::string::ToString;
+use crate::error::Error;
 
 // Define the PopulatedTick struct (matching LensOn.sol)
 #[derive(Debug, Clone, Copy)]
@@ -48,23 +49,24 @@ pub async fn get_tick_data<P, N>(
     max_ticks: U256,
     provider: P,
     uni_obrv_address: Address,
-) -> Result<(Vec<PopulatedTick>, I24)> 
+) -> Result<(Vec<PopulatedTick>, I24), Error> 
 where 
 N: Network,
 P: Provider<N>
 {
     // Input validation
     if pool == Address::ZERO {
-        eyre::bail!("Invalid pool address");
+           return Err(Error::InvalidPoolAddress);
     }
+
     if tick_lower > tick_upper {
-        eyre::bail!("Invalid tick range");
+        return Err(Error::InvalidTickRange);
     }
     let tick_lower_min = I24::MIN;
     let tick_upper_max = I24::MAX;
 
     if tick_lower < tick_lower_min || tick_upper > tick_upper_max {
-        eyre::bail!("Ticks out of range");
+        return Err(Error::TicksOutOfRange);
     }
 
     // Create contract instance
@@ -77,7 +79,8 @@ P: Provider<N>
     let result = contract
         .getTickData(pool, tick_lower, tick_upper, max_ticks)
         .call()
-        .await?;
+        .await
+        .map_err(|e| Error::ContractCall(e.to_string()))?;
 
     // Map results to PopulatedTick
     Ok((
@@ -108,27 +111,39 @@ mod tests {
 
 
     #[tokio::test]
-    async fn test_get_tick_data_valid() {
-
-
+    async fn test_get_tick_data_valid() -> Result<(), Error> {
         let provider = PROVIDER.clone();
         let tick_lower = I24::from_str("188258").unwrap();
         let tick_upper = I24::from_str("276278").unwrap();
         let max_ticks = U256::from(1000000);
 
+        let (ticks, tick_spacing) = get_tick_data(
+            POOL,
+            tick_lower,
+            tick_upper,
+            max_ticks,
+            provider,
+            Address::ZERO,
+        )
+        .await?;
 
-        let result = get_tick_data(POOL, tick_lower, tick_upper, max_ticks, provider, Address::ZERO).await;
-        match result{
-            Ok((ticks, _tick_spacing)) => {
-                assert!(!ticks.is_empty(), "Expected non-empty tick data");
-                for tick in ticks { 
-                    println!("tick: {}", tick.liquidity_gross);
-                }
-                println!("spacing: {}", _tick_spacing);
-            }
-            Err(e) => panic!("Valid input test failed: {:?}", e),
+        // Assert that ticks are not empty
+        if ticks.is_empty() {
+            return Err(Error::ContractCall("Empty tick data".to_string()));
         }
+
+        // Add assertions to verify data
+        assert!(!ticks.is_empty(), "Tick data should not be empty");
+        let tick = &ticks[0];
+            assert!(tick.liquidity_gross > 0, "Liquidity gross should be positive");
+            println!("Tick liquidity gross: {}", tick.liquidity_gross);
+        
+        assert!(tick_spacing >= I24::ZERO, "Tick spacing should be non-negative");
+        println!("Tick spacing: {}", tick_spacing);
+
+        Ok(())
     }
+
 
     #[tokio::test]
     async fn test_get_tick_data_invalid_pool() {

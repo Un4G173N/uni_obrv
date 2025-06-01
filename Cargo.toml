@@ -1,6 +1,6 @@
 [package]
 name = "uni-obrv"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 authors = ["Un4giv3n <twitter.com/_nun4g7n>"]
 description = "A library for querying Uniswap V3 using On-chain helper contract."
@@ -22,7 +22,8 @@ include = [
 
 [dependencies]
 alloy = { version = "1.0.1", default-features = false, features = ["contract", "json-rpc", "rpc-types"] }
-eyre = "0.6.12"
+thiserror = { version = "2", default-features = false }
+
 
 [dev-dependencies]
 alloy = { version = "1.0.1", default-features = false, features = ["transport-http", "reqwest"] }

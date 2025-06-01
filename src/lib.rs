@@ -18,6 +18,7 @@
 extern crate alloc;
 
 pub mod uni_obrv;
+pub mod error;
 
 #[cfg(test)]
 mod tests;
